@@ -8,10 +8,8 @@ RUN corepack enable && \
 RUN pnpm install --prod --frozen-lockfile
 
 FROM node:21.5.0-slim AS web
-USER node
+# USER node   #WIP need to make proper rights after cap
 WORKDIR /app
 COPY --from=base /app/tmp /app
-
-EXPOSE 3000
 
 CMD [ "node", "src/cli.js" ]

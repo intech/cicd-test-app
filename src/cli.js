@@ -5,7 +5,7 @@ import sqlite3 from "sqlite3";
 let server = null;
 let timer = null;
 const app = new Hono();
-const db_path = "state.db";
+const db_path = "db/state.db";
 let db = null;
 let master, toMaster = false;
 let readyToStop = false;
@@ -28,7 +28,7 @@ function init() {
 // received hook to switch to master
 async function start() {
     // TODO: replace to state machine
-    if(master || toMaster) return Promise.reject("Already master!");
+    if (master || toMaster) return Promise.reject("Already master!");
     toMaster = true;
     readyToStop = false;
     console.log(`readyToStop = false`);
@@ -62,7 +62,7 @@ async function start() {
 }
 
 async function stop() {
-    if(!readyToStop) console.error(new Error("Stopping without ready!"));
+    if (!readyToStop) console.error(new Error("Stopping without ready!"));
     clearInterval(timer);
     await Promise.all([
         db ? new Promise(resolve => db.close(() => resolve())) : Promise.resolve(),
@@ -91,7 +91,7 @@ app.get("/ready", (c) => c.json({
     readyToStop,
 }));
 
-app.put("/master", async(c) => {
+app.put("/master", async (c) => {
     // TODO: replace to event emitter
     try {
         await start();
