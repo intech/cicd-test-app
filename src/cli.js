@@ -27,6 +27,7 @@ function init() {
 }
 // received hook to switch to master
 async function start() {
+    // TODO: replace to state machine
     if(master || toMaster) return Promise.reject("Already master!");
     toMaster = true;
     readyToStop = false;
