@@ -1,0 +1,10 @@
+node_modules/
+.github/
+.idea/
+.git/
+.gitignore
+*.md
+*.db
+*.conf
+*.env
+docker-compose.yaml

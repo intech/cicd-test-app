@@ -1,0 +1,9 @@
+node_modules
+.run
+.idea
+.vscode
+*.db
+*.conf
+*.env
+*.yaml
+!pnpm-lock.yaml
