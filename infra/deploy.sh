@@ -17,19 +17,20 @@ function check_status {
   while true; do
     response=$(curl -s "http://localhost:$1/ready" | jq -r '.master')
 
-    if [[ $response == "false" ]]; then
+    if [[ $response == "true" ]]; then
+      logger "New master is ready, need some magic for backup tag"
+      break      
+    else
       current=$(date +%s)
       duration=$((current - start))
-
+      logger "master has not been initialized for $duration"
       if [[ $duration -gt 5 ]]; then
         logger "new master is not ready, fallback to backup tag"
-        break
-      fi
-    else
-      echo "New master is ready, need some magic for backup tag"
-      break
+        sudo TAG="backup" docker-compose up -d $non_master
+        logger "backup tag has been deployed" #here master will be done by code
+        break    
+      fi    
     fi
-
     sleep 1
   done
 }
@@ -42,10 +43,10 @@ function change_master {
     status=$(curl -s "$1" | jq -r '.status')
     
     if [[ $status == "ok" ]]; then
-      logger "crontask script: stopped master - $master"
       if [[ $(curl -s "http://localhost:$(get_port $master)/ready" | jq -r '.readyToStop') == "true" ]]; then
-        sudo docker-compose stop $master  #need to add checking if ready to stop??
-        curl -X PUT localhost:$(get_port $non_master)/master   #need to add check if ok?
+        sudo TAG="latest" docker-compose stop $master
+        logger "crontask script: stopped master - $master"
+        curl -X PUT localhost:$(get_port $non_master)/master   #need to add check if ok?   #here master will be done by code
         check_status $(get_port $non_master)
       else
         logger "crontask script: master is not ready for stop"
@@ -53,7 +54,7 @@ function change_master {
       break
     fi
     
-    attempts=$((attempts + 1))3ц
+    attempts=$((attempts + 1))
     sleep 5
   done
 }
@@ -66,7 +67,7 @@ function try_updating {
   non_master=$2
   if [[ $(curl -s "http://localhost:$(get_port $master)/ready" | jq -r '.readyToStop') == "true" ]]; then
     logger "crontask script: master is: $master"
-    sudo docker-compose start $non_master
+    sudo TAG="latest" docker-compose up -d $non_master
     change_master "http://localhost:$(get_port $non_master)/ready"
   else
     logger "crontask script: master is not ready for stop"
@@ -86,7 +87,7 @@ if [[ $out != *"up to date"* ]]; then
   response2=$(curl -s --fail localhost:3001/ready | jq -r '.master')
   if [[ $response1 == "" && $response2 == "" ]]; then    #init no port answers anything -> no docker-compose is up
     logger "no service is up, starting both"
-    sudo docker-compose up -d
+    sudo TAG="latest"  docker-compose up -d
   else
     if [[ $response1 == "false" && $response2 == "false" ]]; then
       try_updating printer2 printer1
@@ -100,5 +101,5 @@ if [[ $out != *"up to date"* ]]; then
     fi
   fi
 else
-    logger "crontask script: no update for the image"
+  logger "crontask script: no update for the image"
 fi
