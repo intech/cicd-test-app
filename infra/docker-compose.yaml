@@ -1,0 +1,25 @@
+version: '3.3'
+
+services:
+  printer1:
+    image: test:$TAG
+    env_file:
+      - env.printer1
+    cap_add:
+      - ALL
+    restart: unless-stopped
+    stop_grace_period: 10s
+    network_mode: host
+    volumes:
+      - /home/pi/server/db:/app/db
+  printer2:
+    image: test:$TAG
+    env_file:
+      - env.printer2
+    cap_add:
+      - ALL
+    restart: unless-stopped
+    stop_grace_period: 10s
+    network_mode: host
+    volumes:
+      - /home/pi/server/db:/app/db

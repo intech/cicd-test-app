@@ -5,5 +5,4 @@ node_modules
 *.db
 *.conf
 *.env
-*.yaml
 !pnpm-lock.yaml
